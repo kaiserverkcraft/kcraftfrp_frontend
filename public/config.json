@@ -1,0 +1,6 @@
+{
+  "apiBaseUrl": "/api",
+  "wsBaseUrl": "",
+  "appTitle": "KCraftFRP 管理面板",
+  "appDescription": "KCraftFRP 内网穿透管理平台"
+}
