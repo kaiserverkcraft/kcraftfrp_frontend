@@ -116,6 +116,8 @@ export const tunnelApi = {
 export const nodeApi = {
   getList: () => api.get('/node/list'),
   getStatus: () => api.get('/nodes/'),
+  getConfig: () => api.get('/node/config'),
+  updateConfig: (data: { enable_whitelist: boolean; whitelist: string[] }) => api.put('/node/config', data),
   delete: (nodeId: string) => api.delete(`/nodes/${nodeId}`),
 }
 

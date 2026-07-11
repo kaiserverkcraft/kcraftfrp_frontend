@@ -1,6 +1,6 @@
 {
-  "apiBaseUrl": "/api",
-  "wsBaseUrl": "",
-  "appTitle": "KCraftFRP 管理面板",
-  "appDescription": "KCraftFRP 内网穿透管理平台"
+  "apiBaseUrl": "https://kcraftfrp-api.kcraft.095681.xyz/api",
+  "wsBaseUrl": "wss://kcraftfrp-api.kcraft.095681.xyz/ws",
+  "appTitle": "kcraftfrp网页管理",
+  "appDescription": "kcraftfrp网页管理面板"
 }

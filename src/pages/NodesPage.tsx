@@ -13,7 +13,6 @@ interface Node {
   online: boolean
   cpu_usage: number
   memory_usage: number
-  total_tunnels: number
   active_tunnels: number
 }
 
@@ -87,7 +86,7 @@ export default function NodesPage() {
                       </div>
                       <div className="flex justify-between">
                         <span>活跃隧道</span>
-                        <span>{node.active_tunnels || 0}/{node.total_tunnels || 0}</span>
+                        <span>{node.active_tunnels || 0}</span>
                       </div>
                     </div>
                   )}

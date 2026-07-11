@@ -42,7 +42,6 @@ interface Tunnel {
   node?: {
     id: string
     name: string
-    online: boolean
   }
 }
 
@@ -216,6 +215,7 @@ export default function AdminTunnelsPage() {
                     <TableHead>名称</TableHead>
                     <TableHead>所属用户</TableHead>
                     <TableHead>所属节点</TableHead>
+                    <TableHead>状态</TableHead>
                     <TableHead>类型</TableHead>
                     <TableHead>本地地址</TableHead>
                     <TableHead>远程端口</TableHead>
@@ -238,17 +238,17 @@ export default function AdminTunnelsPage() {
                       </TableCell>
                       <TableCell>
                         {tunnel.node ? (
-                          <div className="flex items-center gap-2">
-                            <span>{tunnel.node.name}</span>
-                            <Badge className={tunnel.node.online ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'}>
-                              {tunnel.node.online ? '在线' : '离线'}
-                            </Badge>
-                          </div>
+                          <span>{tunnel.node.name}</span>
                         ) : tunnel.node_id ? (
                           <span className="text-muted-foreground text-xs">{tunnel.node_id}</span>
                         ) : (
                           <span className="text-muted-foreground">未分配</span>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={tunnel.status === 'online' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'}>
+                          {tunnel.status === 'online' ? '在线' : '离线'}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge className={getTypeBadge(tunnel.type)}>{tunnel.type.toUpperCase()}</Badge>
@@ -292,10 +292,21 @@ export default function AdminTunnelsPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => banMutation.mutate({ tunnelId: tunnel.id, isBanned: !tunnel.is_banned })}
-                            title={tunnel.is_banned ? '解封' : '封禁'}
+                            onClick={() => {
+                              if (tunnel.is_banned) {
+                                banMutation.mutate({ tunnelId: tunnel.id, isBanned: false })
+                              } else {
+                                if (confirm(`确定要封禁此用户在此节点的所有隧道吗？\n\n封禁后该用户的 frpc 将无法连接到该节点，所有隧道将被踢下线。`)) {
+                                  banMutation.mutate({ tunnelId: tunnel.id, isBanned: true })
+                                }
+                              }
+                            }}
+                            title={tunnel.is_banned ? '解封此用户的隧道' : '封禁此用户的隧道'}
                           >
                             <Ban className={`h-4 w-4 ${tunnel.is_banned ? 'text-green-500' : 'text-red-500'}`} />
+                            <span className={`ml-1 text-xs ${tunnel.is_banned ? 'text-green-500' : 'text-red-500'}`}>
+                              {tunnel.is_banned ? '解封' : '封禁'}
+                            </span>
                           </Button>
                           <Button
                             variant="ghost"
@@ -315,7 +326,7 @@ export default function AdminTunnelsPage() {
                   ))}
                   {tunnelList.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={10} className="text-center py-10 text-muted-foreground">
+                      <TableCell colSpan={11} className="text-center py-10 text-muted-foreground">
                         暂无隧道数据
                       </TableCell>
                     </TableRow>

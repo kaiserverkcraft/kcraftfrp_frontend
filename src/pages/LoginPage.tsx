@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { TbBuildingTunnel } from 'react-icons/tb'
@@ -28,6 +28,9 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [inviteCode, setInviteCode] = useState('')
+  const [contentHeight, setContentHeight] = useState<number | null>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
   const bottomInfo = 'pixiv PID: 135839784'
 
   const from = (location.state as any)?.from?.pathname || '/app/dashboard'
@@ -35,6 +38,20 @@ export default function LoginPage() {
   useEffect(() => {
     fetchCaptchaRequired()
   }, [])
+
+  useLayoutEffect(() => {
+    if (!cardRef.current || !contentRef.current) return
+
+    const currentHeight = cardRef.current.getBoundingClientRect().height
+    const targetHeight = contentRef.current.scrollHeight
+
+    setContentHeight(currentHeight)
+    const animationFrame = requestAnimationFrame(() => {
+      setContentHeight(targetHeight)
+    })
+
+    return () => cancelAnimationFrame(animationFrame)
+  }, [mode, showCaptcha, error])
 
   const fetchCaptchaRequired = async () => {
     try {
@@ -193,8 +210,13 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-2xl rounded-2xl p-6 sm:p-8 border border-white/20 shadow-2xl shadow-black/60">
-            <div className="flex rounded-xl bg-white/5 p-1 mb-6">
+          <div
+            ref={cardRef}
+            className="bg-white/10 backdrop-blur-2xl rounded-2xl border border-white/20 shadow-2xl shadow-black/60 overflow-hidden transition-[height] duration-300 ease-in-out"
+            style={{ height: contentHeight ? `${contentHeight}px` : 'auto' }}
+          >
+            <div ref={contentRef} className="p-6 sm:p-8">
+              <div className="flex rounded-xl bg-white/5 p-1 mb-6">
               <button
                 type="button"
                 onClick={() => switchMode('login')}
@@ -404,6 +426,7 @@ export default function LoginPage() {
                 </div>
               </div>
             )}
+            </div>
           </div>
 
           <div className="mt-6 text-center">

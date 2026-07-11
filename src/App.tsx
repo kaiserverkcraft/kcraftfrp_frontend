@@ -8,6 +8,7 @@ import ProxiesPage from './pages/ProxiesPage'
 import ServerStatusPage from './pages/ServerStatusPage'
 import NodesPage from './pages/NodesPage'
 import AdminTunnelsPage from './pages/AdminTunnelsPage'
+import NodeManagementPage from './pages/NodeManagementPage'
 import InviteCodesPage from './pages/InviteCodesPage'
 import UserManagementPage from './pages/UserManagementPage'
 import GroupManagementPage from './pages/GroupManagementPage'
@@ -52,6 +53,14 @@ function App() {
           element={
             <PrivateRoute adminOnly>
               <AdminTunnelsPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="node-management"
+          element={
+            <PrivateRoute adminOnly>
+              <NodeManagementPage />
             </PrivateRoute>
           }
         />

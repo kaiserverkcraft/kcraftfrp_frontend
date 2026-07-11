@@ -46,6 +46,11 @@ interface Tunnel {
   qos_level: number
   bandwidth: number
   node_id: string
+  node?: {
+    id: string
+    name: string
+    online: boolean
+  }
   created_at: string
 }
 
@@ -168,11 +173,6 @@ export default function ProxiesPage() {
       window.removeEventListener('user-permission-updated', handlePermissionUpdate as EventListener)
     }
   }, [queryClient])
-
-  const getNodeName = (nodeId: string) => {
-    const node = allNodes.find(n => n.id === nodeId)
-    return node ? (node.name || node.id) : nodeId
-  }
 
   const getSelectedNode = () => {
     return allNodes.find(n => n.id === newTunnel.node_id)
@@ -479,7 +479,6 @@ export default function ProxiesPage() {
                   <TableHead>本地地址</TableHead>
                   <TableHead>远程端口</TableHead>
                   <TableHead>节点</TableHead>
-                  <TableHead>状态</TableHead>
                   <TableHead>QoS</TableHead>
                   <TableHead>限速</TableHead>
                   <TableHead>操作</TableHead>
@@ -495,11 +494,19 @@ export default function ProxiesPage() {
                     </TableCell>
                     <TableCell>{tunnel.local_ip}:{tunnel.local_port}</TableCell>
                     <TableCell>{tunnel.remote_port}</TableCell>
-                    <TableCell>{tunnel.node_id ? getNodeName(tunnel.node_id) : '-'}</TableCell>
                     <TableCell>
-                      <Badge className={tunnel.status === 'online' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'}>
-                        {tunnel.status === 'online' ? '在线' : '离线'}
-                      </Badge>
+                      {tunnel.node ? (
+                        <div className="flex items-center gap-2">
+                          <span>{tunnel.node.name || tunnel.node.id}</span>
+                          <Badge className={tunnel.node.online ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'}>
+                            {tunnel.node.online ? '在线' : '离线'}
+                          </Badge>
+                        </div>
+                      ) : tunnel.node_id ? (
+                        <span className="text-muted-foreground text-xs">{tunnel.node_id}</span>
+                      ) : (
+                        <span>-</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Badge className={
@@ -536,7 +543,7 @@ export default function ProxiesPage() {
                 ))}
                 {tunnels.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-10 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-10 text-muted-foreground">
                       暂无隧道数据
                     </TableCell>
                   </TableRow>

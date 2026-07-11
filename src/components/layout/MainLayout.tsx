@@ -57,6 +57,7 @@ const navItems = [
     icon: ShieldCheck,
     items: [
       { title: '隧道管理', url: '/app/admin-tunnels' },
+      { title: '管理节点', url: '/app/node-management' },
       { title: '邀请码管理', url: '/app/invite-codes' },
       { title: '用户管理', url: '/app/user-management' },
       { title: '用户组管理', url: '/app/group-management' },

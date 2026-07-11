@@ -20,7 +20,6 @@ interface NodeStatus {
   memory_usage: number
   network_in: number
   network_out: number
-  total_tunnels: number
   active_tunnels: number
   uptime: number
   traffic_in_24h: number

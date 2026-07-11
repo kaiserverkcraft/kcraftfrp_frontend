@@ -142,11 +142,29 @@ export default function DashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>如需中国内地节点：</CardTitle>
+          <CardTitle>⚠️（必看）使用须知</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
             中国内地节点需要私聊联系管理员开通，其他节点欢迎测试！
+            大流量内容或项目请使用不限流量节点 随机巡查如果给我巡查到了就封隧道
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>大流量内容</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">
+            以下情形，我们定义为大流量内容：
+              10 分钟内，带宽保持在 10 Mbit/s 以上的
+              带宽峰值到达 100 Mbit/s 以上的
+              传输超过 100 MiB 以上大小的文件的
+              搭建图床、文件分享、网盘程序的
+            包括但不限于以下项目：
+              WebDav、SMB、AList、OpenList、Cloudreve、NextCloud、ZFile、群晖、TrueNAS、飞牛 fnOS、FTP（含 SFTP/FTPS 等）、MinIO、Emby、Jellyfin、SRS、Navidrome、Vidon、Plex、Kodi、Infuse、Lsky Pro
           </p>
         </CardContent>
       </Card>
