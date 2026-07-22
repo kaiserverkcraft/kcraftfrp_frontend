@@ -1,4 +1,4 @@
-# KCraftFRP 主控系统
+# kcraftfrp 整体系统架构
 
 kcraftfrp web panel 样式来源于另一个面板 [frp-panel](https://github.com/VaalaCat/frp-panel)
 
