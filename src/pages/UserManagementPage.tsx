@@ -38,10 +38,6 @@ interface User {
   username: string
   email: string
   group_id: number
-  group?: {
-    id: number
-    name: string
-  }
   access_key: string
   is_banned: boolean
   created_at: string
@@ -299,7 +295,7 @@ export default function UserManagementPage() {
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={user.is_banned ? 'border-gray-500/30' : ''}>
-                        {user.group?.name || `组${user.group_id}`}
+                        {groups.find(g => g.id === user.group_id)?.name || `组${user.group_id}`}
                       </Badge>
                     </TableCell>
                     <TableCell>

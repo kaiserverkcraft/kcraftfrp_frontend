@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { TbBuildingTunnel } from 'react-icons/tb'
-import { Server, Shield, Zap, Globe, ArrowRight, Cpu, Network, Lock, Rocket, Menu, X } from 'lucide-react'
+import { Server, Shield, Zap, Globe, ArrowRight, Network, Lock, Rocket, Menu, X } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { useState, useEffect, type MouseEvent } from 'react'
 import { getApiBaseUrl } from '../lib/config'
@@ -100,7 +100,7 @@ export default function HomePage() {
     {
       icon: Server,
       title: '多节点支持',
-      description: '支持多个边缘节点部署，实现就近接入，降低延迟',
+      description: '现有可用多个节点，实现就近接入，降低延迟',
     },
     {
       icon: Shield,
@@ -110,32 +110,27 @@ export default function HomePage() {
     {
       icon: Zap,
       title: '高性能',
-      description: '基于Golang，传输效率高，延迟低',
+      description: '基于Golang，传输速度快，资源占用少',
     },
     {
       icon: Globe,
       title: '覆盖广',
-      description: '多地域节点部署，满足不同场景需求',
-    },
-    {
-      icon: Cpu,
-      title: 'QoS控制',
-      description: '支持服务质量等级控制，合理分配带宽资源',
+      description: '多地域节点可用，满足不同场景需求',
     },
     {
       icon: Network,
       title: '协议支持',
-      description: '支持TCP、UDP等基础穿透协议',
+      description: '支持TCP、UDP等协议 未来将会继续添加全新协议',
     },
     {
       icon: Lock,
       title: '访问控制',
-      description: '支持访问密钥认证，确保服务安全可控',
+      description: '支持访问密钥认证，保证服务安全可控',
     },
     {
       icon: Rocket,
       title: '快速部署',
-      description: '简单配置即可快速启动，一键生成配置文件',
+      description: '一键生成配置文件，简单配置即可快速启动',
     },
   ]
 
@@ -201,7 +196,7 @@ export default function HomePage() {
           <div className="text-center">
             <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-slate-800 border border-slate-700 text-xs sm:text-sm text-gray-300 mb-6 sm:mb-8">
               <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse" />
-              v0.91.114 Beta / 测试版本
+              v0.92.13 Beta / 测试版本
             </div>
             
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6">
@@ -214,7 +209,7 @@ export default function HomePage() {
             </p>
             
             <p className="text-sm sm:text-base md:text-lg text-gray-400 mb-8 sm:mb-10 max-w-xl sm:max-w-2xl mx-auto leading-relaxed px-2">
-              基于Golang语言打造的高性能后端 以及节点端 速度超快超稳定
+              基于Golang语言打造的高性能节点 速度超快超稳定
               让你轻松的将内网服务 安全的暴露到公网 适用于远程办公 远程控制 内网资源共享等多种场景
             </p>
             
@@ -314,9 +309,9 @@ export default function HomePage() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             {[
-              { step: '01', title: '注册账号', desc: '填写基本信息，完成账号注册' },
+              { step: '01', title: '注册账号', desc: '填写信息，完成账号注册' },
               { step: '02', title: '创建隧道', desc: '选择节点，配置隧道参数' },
-              { step: '03', title: '启动服务', desc: '获取配置文件，启动客户端' },
+              { step: '03', title: '启动服务', desc: '获取配置，快速使用服务' },
             ].map((item, index) => (
               <div
                 key={index}

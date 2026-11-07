@@ -9,6 +9,7 @@ import { Plus, RefreshCw, Trash2, Edit, Download, AlertCircle, X } from 'lucide-
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { tunnelApi, userApi, nodeApi } from '../lib/api'
 import { getUser, setUser } from '../lib/auth'
+import { formatBytes } from '../lib/utils'
 import {
   Table,
   TableBody,
@@ -37,6 +38,7 @@ import { Checkbox } from '../components/ui/checkbox'
 
 interface Tunnel {
   id: number
+  display_id?: number
   name: string
   type: string
   local_ip: string
@@ -51,6 +53,8 @@ interface Tunnel {
     name: string
     online: boolean
   }
+  traffic_in_24h?: number
+  traffic_out_24h?: number
   created_at: string
 }
 
@@ -76,6 +80,7 @@ export default function ProxiesPage() {
   const [editingTunnel, setEditingTunnel] = useState<Tunnel | null>(null)
   const [frpcConfig, setFrpcConfig] = useState('')
   const [selectedNodeId, setSelectedNodeId] = useState('')
+  const [selectedTunnelIds, setSelectedTunnelIds] = useState<number[]>([])
   const [configNodeDialogOpen, setConfigNodeDialogOpen] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [configOptions, setConfigOptions] = useState({
@@ -138,17 +143,20 @@ export default function ProxiesPage() {
 
   const allowedNodes = useMemo(() => {
     if (!currentUser) return []
-    
+
+    let filtered: Node[]
     if (currentUser.group_id === 1) {
-      return allNodes.filter(n => n.online)
+      filtered = allNodes.filter(n => n.online)
+    } else {
+      const allowedNodeIds = currentUser.group?.allowed_nodes || []
+      if (allowedNodeIds.length === 0) {
+        filtered = allNodes.filter(n => n.online)
+      } else {
+        filtered = allNodes.filter(n => n.online && allowedNodeIds.includes(n.id))
+      }
     }
-    
-    const allowedNodeIds = currentUser.group?.allowed_nodes || []
-    if (allowedNodeIds.length === 0) {
-      return allNodes.filter(n => n.online)
-    }
-    
-    return allNodes.filter(n => n.online && allowedNodeIds.includes(n.id))
+
+    return filtered.sort((a, b) => (a.name || a.id || '').localeCompare(b.name || b.id || '', 'zh-CN'))
   }, [currentUser, allNodes])
 
   useEffect(() => {
@@ -160,6 +168,7 @@ export default function ProxiesPage() {
   useEffect(() => {
     if (selectedNodeId && !allowedNodes.find(n => n.id === selectedNodeId)) {
       setSelectedNodeId('')
+      setSelectedTunnelIds([])
     }
   }, [allowedNodes, selectedNodeId])
 
@@ -254,14 +263,23 @@ export default function ProxiesPage() {
     },
   })
 
+  const configTunnels = useMemo(
+    () => tunnels.filter(tunnel => tunnel.node_id === selectedNodeId),
+    [tunnels, selectedNodeId]
+  )
+
+  useEffect(() => {
+    setSelectedTunnelIds(ids => ids.filter(id => configTunnels.some(tunnel => tunnel.id === id)))
+  }, [configTunnels])
+
   const configMutation = useMutation({
-    mutationFn: async (nodeId: string) => {
+    mutationFn: async ({ nodeId, tunnelIds }: { nodeId: string; tunnelIds: number[] }) => {
       await userApi.updateTransport({
         proxy_protocol: configOptions.proxyProtocol ? 'v2' : '',
         use_encryption: configOptions.useEncryption,
         use_compression: configOptions.useCompression,
       })
-      return userApi.getFrpcConfig(nodeId)
+      return userApi.getFrpcConfig(nodeId, tunnelIds)
     },
     onSuccess: (data: any) => {
       if (data.code === 200 && data.body?.config) {
@@ -292,7 +310,7 @@ export default function ProxiesPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'frpc.ini'
+    a.download = 'frpc.toml'
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -306,7 +324,11 @@ export default function ProxiesPage() {
             <RefreshCw className="mr-2 h-4 w-4" />
             刷新
           </Button>
-          <Button variant="outline" onClick={() => setConfigNodeDialogOpen(true)}>
+          <Button variant="outline" onClick={() => {
+            setSelectedNodeId('')
+            setSelectedTunnelIds([])
+            setConfigNodeDialogOpen(true)
+          }}>
             <Download className="mr-2 h-4 w-4" />
             获取配置
           </Button>
@@ -473,21 +495,21 @@ export default function ProxiesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
+                  <TableHead>隧道ID</TableHead>
                   <TableHead>名称</TableHead>
                   <TableHead>类型</TableHead>
                   <TableHead>本地地址</TableHead>
                   <TableHead>远程端口</TableHead>
                   <TableHead>节点</TableHead>
-                  <TableHead>QoS</TableHead>
+                  <TableHead>今日流量</TableHead>
                   <TableHead>限速</TableHead>
                   <TableHead>操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {tunnels.map((tunnel) => (
+                {[...tunnels].sort((a, b) => (a.display_id ?? a.id) - (b.display_id ?? b.id)).map((tunnel) => (
                   <TableRow key={tunnel.id}>
-                    <TableCell>{tunnel.id}</TableCell>
+                    <TableCell>{tunnel.display_id ?? tunnel.id}</TableCell>
                     <TableCell>{tunnel.name}</TableCell>
                     <TableCell>
                       <Badge className={getTypeBadge(tunnel.type)}>{tunnel.type.toUpperCase()}</Badge>
@@ -496,9 +518,9 @@ export default function ProxiesPage() {
                     <TableCell>{tunnel.remote_port}</TableCell>
                     <TableCell>
                       {tunnel.node ? (
-                        <div className="flex items-center gap-2">
-                          <span>{tunnel.node.name || tunnel.node.id}</span>
-                          <Badge className={tunnel.node.online ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'}>
+                        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
+                          <span className="break-words">{tunnel.node.name || tunnel.node.id}</span>
+                          <Badge className={`shrink-0 ${tunnel.node.online ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'}`}>
                             {tunnel.node.online ? '在线' : '离线'}
                           </Badge>
                         </div>
@@ -509,15 +531,10 @@ export default function ProxiesPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge className={
-                        tunnel.qos_level === 7 ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
-                        tunnel.qos_level >= 5 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                        tunnel.qos_level >= 3 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
-                        tunnel.qos_level > 0 ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200' :
-                        'bg-gray-50 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
-                      }>
-                        QoS {tunnel.qos_level || 0}
-                      </Badge>
+                      <div className="flex flex-col text-xs leading-tight">
+                        <span className="text-green-600 dark:text-green-400">入 {formatBytes(tunnel.traffic_in_24h || 0)}</span>
+                        <span className="text-blue-600 dark:text-blue-400">出 {formatBytes(tunnel.traffic_out_24h || 0)}</span>
+                      </div>
                     </TableCell>
                     <TableCell>{tunnel.bandwidth > 0 ? `${tunnel.bandwidth}Mbps` : '不限'}</TableCell>
                     <TableCell>
@@ -543,7 +560,7 @@ export default function ProxiesPage() {
                 ))}
                 {tunnels.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-10 text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center py-10 text-muted-foreground">
                       暂无隧道数据
                     </TableCell>
                   </TableRow>
@@ -600,8 +617,8 @@ export default function ProxiesPage() {
       <Dialog open={configNodeDialogOpen} onOpenChange={setConfigNodeDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>选择节点获取配置</DialogTitle>
-            <DialogDescription>请选择要获取配置的节点并设置传输选项</DialogDescription>
+            <DialogTitle>获取隧道配置</DialogTitle>
+            <DialogDescription>请先选择节点，再选择该节点下需要获取配置的隧道</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -629,6 +646,45 @@ export default function ProxiesPage() {
             {allowedNodes.length === 0 && (
               <p className="text-sm text-muted-foreground">您的用户组暂无可用节点，请联系管理员</p>
             )}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>隧道</Label>
+                {selectedNodeId && configTunnels.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedTunnelIds(
+                      selectedTunnelIds.length === configTunnels.length ? [] : configTunnels.map(tunnel => tunnel.id)
+                    )}
+                  >
+                    {selectedTunnelIds.length === configTunnels.length ? '取消全选' : '全选'}
+                  </Button>
+                )}
+              </div>
+              {!selectedNodeId ? (
+                <p className="text-sm text-muted-foreground">请先选择节点</p>
+              ) : configTunnels.length === 0 ? (
+                <p className="text-sm text-muted-foreground">该节点下暂无可获取的隧道</p>
+              ) : (
+                <div className="max-h-48 space-y-2 overflow-auto rounded-md border p-3">
+                  {configTunnels.map(tunnel => (
+                    <div key={tunnel.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`config-tunnel-${tunnel.id}`}
+                        checked={selectedTunnelIds.includes(tunnel.id)}
+                        onCheckedChange={(checked) => setSelectedTunnelIds(ids =>
+                          checked ? [...ids, tunnel.id] : ids.filter(id => id !== tunnel.id)
+                        )}
+                      />
+                      <label htmlFor={`config-tunnel-${tunnel.id}`} className="cursor-pointer text-sm">
+                        {tunnel.name} ({tunnel.type.toUpperCase()})
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             <div className="border-t pt-4 mt-4">
               <Label className="text-base font-semibold">传输选项</Label>
               <div className="space-y-3 mt-3">
@@ -686,8 +742,8 @@ export default function ProxiesPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfigNodeDialogOpen(false)}>取消</Button>
             <Button 
-              onClick={() => configMutation.mutate(selectedNodeId)} 
-              disabled={configMutation.isPending || !selectedNodeId || allowedNodes.length === 0}
+              onClick={() => configMutation.mutate({ nodeId: selectedNodeId, tunnelIds: selectedTunnelIds })} 
+              disabled={configMutation.isPending || !selectedNodeId || selectedTunnelIds.length === 0 || allowedNodes.length === 0}
             >
               {configMutation.isPending ? '获取中...' : '获取配置'}
             </Button>

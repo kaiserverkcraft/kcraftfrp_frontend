@@ -80,7 +80,8 @@ export const userApi = {
   updateTransport: (data: { proxy_protocol?: string; use_encryption?: boolean; use_compression?: boolean }) =>
     api.post('/user/update', data),
   regenerateAccessKey: () => api.post('/user/regenerate-key', {}),
-  getFrpcConfig: (nodeId?: string) => api.post('/user/frpc-config', { node_id: nodeId }),
+  getFrpcConfig: (nodeId: string, tunnelIds: number[]) =>
+    api.post('/user/frpc-config', { node_id: nodeId, tunnel_ids: tunnelIds }),
 }
 
 export const tunnelApi = {
@@ -93,7 +94,7 @@ export const tunnelApi = {
     remote_port: number
     node_id: string
   }) => api.post('/tunnel/create', data),
-  update: (data: { 
+  update: (data: {
     id: number
     name: string
     local_ip: string

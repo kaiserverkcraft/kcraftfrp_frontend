@@ -94,7 +94,9 @@ export default function GroupManagementPage() {
   })
 
   const groupList: Group[] = (((groups as any)?.body?.groups || []) as Group[]).sort((a, b) => a.id - b.id)
-  const nodeList: Node[] = (nodesData as any)?.body?.nodes || []
+  const nodeList: Node[] = ((nodesData as any)?.body?.nodes || []).sort((a: Node, b: Node) =>
+    (a.name || a.id || '').localeCompare(b.name || b.id || '', 'zh-CN')
+  )
 
   const toggleNode = (nodeId: string, isEdit: boolean = false) => {
     if (isEdit) {

@@ -6,6 +6,7 @@ import { Badge } from '../components/ui/badge'
 import { Search, RefreshCw, Ban, Trash2 } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { tunnelApi } from '../lib/api'
+import { formatBytes } from '../lib/utils'
 import {
   Table,
   TableBody,
@@ -24,6 +25,7 @@ import {
 
 interface Tunnel {
   id: number
+  display_id?: number
   name: string
   type: string
   local_ip: string
@@ -43,6 +45,8 @@ interface Tunnel {
     id: string
     name: string
   }
+  traffic_in_24h?: number
+  traffic_out_24h?: number
 }
 
 const QOS_LEVELS = [
@@ -225,10 +229,16 @@ export default function AdminTunnelsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {tunnelList.map((tunnel) => (
+                  {[...tunnelList].sort((a, b) => (a.user_id === b.user_id ? (a.display_id ?? a.id) - (b.display_id ?? b.id) : a.user_id - b.user_id)).map((tunnel) => (
                     <TableRow key={tunnel.id} className={tunnel.is_banned ? 'bg-red-500/10 text-gray-400 dark:text-gray-500' : ''}>
-                      <TableCell>{tunnel.id}</TableCell>
-                      <TableCell className="font-medium">{tunnel.name}</TableCell>
+                      <TableCell>{tunnel.display_id ?? tunnel.id}</TableCell>
+                      <TableCell className="font-medium">
+                        <div>{tunnel.name}</div>
+                        <div className="mt-1 flex flex-col text-xs font-normal text-muted-foreground">
+                        <span>入站: {formatBytes(tunnel.traffic_in_24h || 0)}</span>
+                        <span>出站: {formatBytes(tunnel.traffic_out_24h || 0)}</span>
+                        </div>
+                      </TableCell>
                       <TableCell>
                         {tunnel.user ? (
                           <span>{tunnel.user.username} (UID: {tunnel.user.id})</span>

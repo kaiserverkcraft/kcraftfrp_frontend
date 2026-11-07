@@ -191,7 +191,7 @@ export default function LoginPage() {
             <h1 className="text-4xl lg:text-5xl font-bold font-mono text-white">kcraftfrp</h1>
           </div>
           <p className="text-xl lg:text-2xl text-gray-200 mb-4">
-            Beta 测试中 kcraftfrp - Beta0.91.78
+            Beta 测试中 kcraftfrp - v0.92.13 Beta
           </p>
           <p className="text-gray-300 text-base lg:text-lg leading-relaxed">
             基于Gofrp软件，提供稳定、安全、超快的内网穿透体验
